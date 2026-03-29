@@ -53,7 +53,7 @@ def init_langchain():
     if api_key:
         genai.configure(api_key=api_key)
         # Using "gemini-1.5-flash" specifically to avoid the 404 error
-        llm = genai.GenerativeModel("gemini-1.5-flash")
+        llm = genai.GenerativeModel("gemini-2.5-flash")
     else:
         print("CRITICAL: GEMINI_API_KEY not found in .env file.")
 
@@ -127,10 +127,3 @@ def health():
         "vectorstore_ready": vectorstore is not None,
         "gemini_ready": llm is not None
     }
-
-if __name__ == "__main__":
-    import uvicorn
-    import os
-    # Render automatically sets the PORT environment variable
-    port = int(os.environ.get("PORT", 10000)) 
-    uvicorn.run(app, host="0.0.0.0", port=port)
