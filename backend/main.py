@@ -53,7 +53,7 @@ def init_langchain():
     if api_key:
         genai.configure(api_key=api_key)
         # Using "gemini-1.5-flash" specifically to avoid the 404 error
-        llm = genai.GenerativeModel("gemini-2.5-flash")
+        llm = genai.GenerativeModel("gemini-1.5-flash")
     else:
         print("CRITICAL: GEMINI_API_KEY not found in .env file.")
 
