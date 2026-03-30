@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Send, GraduationCap, Info, HelpCircle, Bot } from "lucide-react";
+import { Send, GraduationCap, Info, HelpCircle } from "lucide-react"; // 'Bot' hata diya gaya hai
 import Image from "next/image"; 
 import RobotAssistant from "@/components/RobotAssistant";
 import ChatMessage from "@/components/ChatMessage";
@@ -74,15 +74,12 @@ export default function Home() {
 
   return (
     <main className="min-h-screen bg-slate-950 flex items-center justify-center p-2 sm:p-4 lg:p-8 font-sans selection:bg-cyan-500/30 text-slate-100">
-      {/* Animated Background */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] rounded-full bg-indigo-900/15 blur-[120px]" />
         <div className="absolute bottom-[-20%] right-[-10%] w-[50%] h-[50%] rounded-full bg-cyan-900/15 blur-[120px]" />
       </div>
 
       <div className="w-full max-w-7xl grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-8 relative z-10 h-[96vh] lg:h-[94vh]">
-        
-        {/* Left Panel: Branding & Robot (Desktop Only) */}
         <div className="hidden lg:flex lg:col-span-4 flex-col items-center bg-white/5 border border-white/10 rounded-3xl p-8 backdrop-blur-xl shadow-2xl relative overflow-hidden">
            <div className="absolute inset-0 bg-grid-white/[0.01] bg-[size:40px_40px]"></div>
 
@@ -92,7 +89,6 @@ export default function Home() {
              transition={{ duration: 0.6 }}
              className="relative z-10 flex flex-col items-center text-center space-y-8 w-full h-full"
            >
-              {/* Top Section: Gol University Logos */}
               <div className="flex w-full items-center justify-between px-4 gap-6">
                 <div className="w-20 h-20 bg-white rounded-full shadow-lg flex items-center justify-center p-1.5 border-4 border-slate-700/50 overflow-hidden">
                   <Image src="/csjmu.png" alt="CSJMU Logo" width={60} height={60} className="object-contain" />
@@ -102,7 +98,6 @@ export default function Home() {
                 </div>
               </div>
 
-              {/* Middle Section: Robot */}
               <div className="flex-1 flex flex-col items-center justify-center space-y-5 w-full">
                 <div className="p-4 bg-gradient-to-br from-slate-800 to-slate-950 rounded-full border border-slate-700 shadow-2xl flex items-center justify-center relative">
                    <RobotAssistant status={robotStatus} />
@@ -112,7 +107,6 @@ export default function Home() {
                 </h1>
               </div>
               
-              {/* Bottom Section: Text */}
               <div className="space-y-4 pt-6 border-t border-white/5 w-full">
                   <h2 className="text-lg font-bold text-slate-200 tracking-wide">
                     Welcome to Department of Computer Application
@@ -124,10 +118,7 @@ export default function Home() {
            </motion.div>
         </div>
 
-        {/* Right Panel: Chat Interface */}
         <div className="col-span-1 lg:col-span-8 flex flex-col bg-white/[0.02] border border-white/10 rounded-3xl backdrop-blur-3xl shadow-3xl overflow-hidden h-full">
-          
-          {/* MOBILE HEADER - YAHAN EDIT KIYA HAI */}
           <div className="lg:hidden flex items-center p-2 border-b border-white/5 bg-slate-950/90 backdrop-blur-md z-20 sticky top-0 gap-2">
              <div className="flex items-center gap-1.5 flex-shrink-0">
                  <div className="w-8 h-8 bg-white rounded-full shadow-md flex items-center justify-center p-0.5 border border-slate-700/50 overflow-hidden">
@@ -149,7 +140,6 @@ export default function Home() {
               </div>
           </div>
 
-          {/* Chat History */}
           <div className="flex-1 overflow-y-auto p-3 sm:p-5 scroll-smooth custom-scrollbar flex flex-col pt-5 lg:pt-8">
             <AnimatePresence initial={false}>
               {messages.map((msg, idx) => (
@@ -169,7 +159,6 @@ export default function Home() {
             <div ref={messagesEndRef} className="h-4" />
           </div>
 
-          {/* Input Area */}
           <div className="p-3 sm:p-5 bg-slate-950/60 border-t border-white/5 backdrop-blur-xl mt-auto">
             {messages.length < 3 && (
               <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="flex flex-wrap gap-2 mb-4">
@@ -197,7 +186,6 @@ export default function Home() {
             </form>
           </div>
         </div>
-        
       </div>
     </main>
   );
