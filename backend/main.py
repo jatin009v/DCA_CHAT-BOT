@@ -12,12 +12,12 @@ from langchain_core.prompts import PromptTemplate
 
 import google.generativeai as genai
 
-# Load environment variables
+# Load env
 load_dotenv()
 
 app = FastAPI(title="BCA & MCA Admission Chatbot API")
 
-# Enable CORS
+# CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -26,46 +26,51 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Global variables
+# Globals (lazy load)
 embeddings = None
 vectorstore = None
 llm = None
 
 
-def init_langchain():
-    global embeddings, vectorstore, llm
+# ✅ LAZY LOAD VECTOR DB
+def get_vectorstore():
+    global embeddings, vectorstore
 
-    try:
-        # ✅ Embeddings
-        embeddings = HuggingFaceEmbeddings(
-            model_name="sentence-transformers/all-MiniLM-L6-v2"
-        )
-
-        # ✅ Vector DB check
-        if os.path.exists("./chroma_db"):
+    if vectorstore is None:
+        try:
+            embeddings = HuggingFaceEmbeddings(
+                model_name="sentence-transformers/all-MiniLM-L6-v2"
+            )
             vectorstore = Chroma(
                 persist_directory="./chroma_db",
                 embedding_function=embeddings
             )
-            print("✅ Chroma DB Loaded")
-        else:
-            print("❌ chroma_db not found. Please run ingest.py before deployment.")
+            print("✅ Vector DB Loaded")
+        except Exception as e:
+            print("❌ Vector DB Error:", e)
+            vectorstore = None
 
-        # ✅ Gemini setup
-        api_key = os.getenv("GEMINI_API_KEY")
-        if api_key:
-            genai.configure(api_key=api_key)
-            llm = genai.GenerativeModel("gemini-1.5-flash")  # stable model
-            print("✅ Gemini Initialized")
-        else:
-            print("❌ GEMINI_API_KEY missing")
-
-    except Exception as e:
-        print(f"❌ Init Error: {str(e)}")
+    return vectorstore
 
 
-# Initialize on startup
-init_langchain()
+# ✅ LAZY LOAD GEMINI
+def get_llm():
+    global llm
+
+    if llm is None:
+        try:
+            api_key = os.getenv("GEMINI_API_KEY")
+            if api_key:
+                genai.configure(api_key=api_key)
+                llm = genai.GenerativeModel("gemini-1.5-flash")
+                print("✅ Gemini Loaded")
+            else:
+                print("❌ API KEY missing")
+        except Exception as e:
+            print("❌ Gemini Error:", e)
+            llm = None
+
+    return llm
 
 
 class ChatQuery(BaseModel):
@@ -73,34 +78,35 @@ class ChatQuery(BaseModel):
     history: list = []
 
 
+# ✅ ROOT (important for Render)
 @app.get("/")
 def home():
     return {"message": "API is running 🚀"}
 
 
+# ✅ HEALTH CHECK
 @app.get("/health")
 def health():
-    return {
-        "status": "ok",
-        "vectorstore_ready": vectorstore is not None,
-        "gemini_ready": llm is not None
-    }
+    return {"status": "ok"}
 
 
+# ✅ CHAT API
 @app.post("/chat")
 async def chat_endpoint(query: ChatQuery):
+
+    vectorstore = get_vectorstore()
+    llm = get_llm()
+
     if not vectorstore:
-        raise HTTPException(status_code=500, detail="Vector DB not found")
+        return {"response": "Vector DB not ready yet"}
 
     if not llm:
-        raise HTTPException(status_code=500, detail="Gemini not initialized")
+        return {"response": "AI model not ready"}
 
     try:
-        # 🔍 Step 1: Similarity Search
         docs = vectorstore.similarity_search(query.message, k=3)
         context = "\n\n".join([doc.page_content for doc in docs])
 
-        # 🧠 Step 2: Prompt
         prompt_template = PromptTemplate(
             input_variables=["context", "question"],
             template="""
@@ -124,7 +130,6 @@ Answer:
             question=query.message
         )
 
-        # 🤖 Step 3: Generate Response
         response = llm.generate_content(
             final_prompt,
             generation_config={
@@ -139,11 +144,11 @@ Answer:
             return {"response": "No response generated"}
 
     except Exception as e:
-        print(f"Error: {str(e)}")
-        return {"response": "Server error, try again later"}
+        print("Error:", e)
+        return {"response": "Server error"}
 
 
-# ✅ 🔥 MOST IMPORTANT PART FOR RENDER
+# ✅ 🔥 RENDER FIX (MOST IMPORTANT)
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 10000))
     uvicorn.run("main:app", host="0.0.0.0", port=port)
